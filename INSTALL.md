@@ -63,7 +63,7 @@ nixos-install --flake .#<host> --option experimental-features "nix-command flake
 It asks for a root password at the end. Then set your user's password:
 
 ```sh
-nixos-enter --root /mnt -c 'passwd thilo'
+nixos-enter --root /mnt -c 'passwd thohlt'
 reboot
 ```
 

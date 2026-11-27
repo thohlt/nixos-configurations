@@ -1,7 +1,6 @@
 # The single user account. Set its password after install with `passwd`.
 {
-  # TODO: replace "thilo" with your username.
-  users.users.thilo = {
+  users.users.thohlt = {
     isNormalUser = true;
     description = "Thilo";
     extraGroups = [

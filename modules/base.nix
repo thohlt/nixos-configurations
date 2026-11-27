@@ -1,5 +1,4 @@
 # Settings every machine shares: boot, firmware, networking, locale, audio.
-{ pkgs, ... }:
 {
   # UEFI + systemd-boot. LUKS devices come from hardware-configuration.nix.
   boot.loader = {
@@ -19,10 +18,17 @@
   networking.networkmanager.enable = true;
   networking.firewall.enable = true;
 
-  # TODO: confirm timezone, locale and keyboard layout.
   time.timeZone = "Europe/Berlin";
+
+  # English language, German date and currency formats.
   i18n.defaultLocale = "en_US.UTF-8";
-  services.xserver.xkb.layout = "de";
+  i18n.extraLocaleSettings = {
+    LC_TIME = "de_DE.UTF-8";
+    LC_MONETARY = "de_DE.UTF-8";
+  };
+
+  # US keyboard layout, also used on the console.
+  services.xserver.xkb.layout = "us";
   console.useXkbConfig = true;
 
   # Audio via PipeWire, with the PulseAudio and ALSA layers most apps expect.
@@ -34,5 +40,5 @@
   };
 
   # git is needed to work with this flake.
-  environment.systemPackages = [ pkgs.git ];
+  programs.git.enable = true;
 }
