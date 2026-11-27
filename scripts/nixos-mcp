@@ -1,0 +1,61 @@
+#!/usr/bin/env bash
+# Usage: scripts/nixos-mcp '<json>' ['<json>' ...]
+# Calls the mcp-nixos server (third-party, packaged in nixpkgs, run from the
+# locked nixpkgs) once per JSON argument and prints the text results.
+# Each argument is the arguments object of the server's `nix` tool; add
+# "tool": "nix_versions" to call that tool instead. Examples:
+#   scripts/nixos-mcp '{"action":"info","type":"option","query":"programs.firefox.enable"}'
+#   scripts/nixos-mcp '{"action":"search","type":"programs","query":"rg"}'
+#   scripts/nixos-mcp '{"tool":"nix_versions","package":"firefox","limit":3}'
+# For sessions where .mcp.json servers are not loaded (cloud project threads).
+# The answers come from search.nixos.org (the channel index, default
+# unstable), not from the locked revision: nixpkgs at the lock stays ground truth.
+set -euo pipefail
+cd "$(git rev-parse --show-toplevel)"
+[ $# -gt 0 ] || {
+  sed -n '2,12s/^# \{0,1\}//p' "$0" >&2
+  exit 2
+}
+
+client='
+import json, subprocess, sys
+srv = subprocess.Popen(["mcp-nixos"], stdin=subprocess.PIPE, stdout=subprocess.PIPE,
+                       stderr=subprocess.DEVNULL, text=True)
+def send(msg):
+    srv.stdin.write(json.dumps(msg) + "\n")
+    srv.stdin.flush()
+def receive(want):
+    for line in srv.stdout:
+        try:
+            msg = json.loads(line)
+        except ValueError:
+            continue
+        if msg.get("id") == want:
+            return msg
+    sys.exit("mcp-nixos exited without answering")
+send({"jsonrpc": "2.0", "id": 0, "method": "initialize", "params": {
+    "protocolVersion": "2025-06-18", "capabilities": {},
+    "clientInfo": {"name": "scripts/nixos-mcp", "version": "1"}}})
+receive(0)
+send({"jsonrpc": "2.0", "method": "notifications/initialized"})
+failed = False
+for n, arg in enumerate(sys.argv[1:], start=1):
+    params = json.loads(arg)
+    tool = params.pop("tool", "nix")
+    send({"jsonrpc": "2.0", "id": n, "method": "tools/call",
+          "params": {"name": tool, "arguments": params}})
+    msg = receive(n)
+    if "error" in msg:
+        text, err = json.dumps(msg["error"]), True
+    else:
+        res = msg["result"]
+        text = "\n".join(c.get("text", "") for c in res.get("content", []))
+        err = res.get("isError", False) or text.startswith("Error")
+    failed |= err
+    print(f"== {tool} {json.dumps(params)}\n{text}\n")
+srv.terminate()
+sys.exit(1 if failed else 0)
+'
+
+exec nix shell --inputs-from . nixpkgs#python3 nixpkgs#mcp-nixos \
+  --command python3 -I -c "$client" "$@"

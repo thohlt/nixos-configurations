@@ -21,6 +21,9 @@ verified. Assume the author worked from outdated memory.
    - `scripts/find-module <name>`, and grep `$NP/nixos/modules` for the
      package attribute (`pkgs.<attr>`, `mkPackageOption pkgs "<attr>"`) to
      catch modules named differently from the package.
+   - Ask mcp-nixos which programs and modules match:
+     `{"action":"search","type":"options","query":"<name>"}` and
+     `{"action":"search","type":"programs","query":"<binary>"}`.
    - If a module exists, FAIL unless `checks/default.nix` lists it in
      `packageExceptions` with a convincing reason.
    - The line must carry `# no NixOS module`.
@@ -38,6 +41,14 @@ verified. Assume the author worked from outdated memory.
      `nix eval .#nixosConfigurations.<host>.options.<path>.type.description`.
    - **Set to its default?** Compare with `.default`; setting a default is
      dead code (WARN).
+   - **Cross-check with mcp-nixos** (third-party, search.nixos.org index of
+     the channel in `flake.lock`): options with
+     `{"action":"info","type":"option","query":"<path>"}`, packages with
+     `{"action":"info","query":"<attr>"}`, via the `mcp__nixos__nix` tool or
+     `scripts/nixos-mcp '<json>'` when the tool is missing. The locked
+     nixpkgs wins; a disagreement (missing, renamed, other type or default)
+     is a WARN with both answers as evidence. A tool error is UNCONFIRMED,
+     not PASS.
 6. Repo rules: no Home Manager or tools built on it; third-party inputs or
    actions must be justified in the change; shared settings in `modules/`,
    only machine-specific ones in `hosts/<host>/`; no `system.stateVersion`

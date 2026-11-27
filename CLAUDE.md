@@ -38,7 +38,8 @@ nothing newer replaced it. For every module, option and package you add or touch
    what nixpkgs itself uses: `nixos/modules/profiles/`,
    `nixos/modules/installer/cd-dvd/`, `nixos/tests/`. Read the current release
    notes (`nixos/doc/manual/release-notes/rl-*.section.md`, newest first) and
-   the upstream project's announcements. If nixpkgs or upstream moved to a
+   the upstream project's announcements. Cross-check names and types with
+   mcp-nixos (Sources, step 3). If nixpkgs or upstream moved to a
    successor, use the successor. (Example of what went wrong before: SDDM
    instead of Plasma Login Manager.)
 2. **Deprecated?** Look for `mkRenamedOptionModule`, `mkRemovedOptionModule`,
@@ -61,11 +62,23 @@ or update a PR while either one fails.
    `flake.lock`) is ground truth for module behaviour and option names.
    Query options with
    `nix eval .#nixosConfigurations.<host>.options.<path>.description`.
-3. **Live official docs:** search.nixos.org (packages, options), noogle.dev
+3. **mcp-nixos** (third-party, github.com/utensils/mcp-nixos, run from the
+   locked nixpkgs). A second opinion, used on every lookup, never a
+   replacement for step 2. Look up every option, package and program you add
+   or touch there too: as MCP tools `mcp__nixos__nix` / `mcp__nixos__nix_versions`
+   where `.mcp.json` loads (local sessions, single-repo cloud sessions), else
+   with `scripts/nixos-mcp '<json>'` (cloud project threads load no `.mcp.json`).
+   It answers from the search.nixos.org index of a channel (pass the channel
+   from `flake.lock`), not the locked rev. If it disagrees with step 2, step 2
+   wins: report the difference (usually the lock is older or newer than the
+   index) and check the release notes. Never use its `home-manager` source.
+   Errors about blocked hosts (noogle.dev, nix.dev, search.devbox.sh) mean
+   the cloud network policy denies them: say so and use the other sources.
+4. **Live official docs:** search.nixos.org (packages, options), noogle.dev
    (`lib.*`, `builtins.*`), nixos.org/manual, nix.dev, wiki.nixos.org (NOT
    nixos.wiki), NixOS release notes, status.nixos.org, nixhub.io (third-party,
    older versions only), discourse.nixos.org and nixpkgs GitHub issues.
-4. Never invent option names, attributes or signatures. If unverified, say so
+5. Never invent option names, attributes or signatures. If unverified, say so
    and say how to check (`nix repl` → `:doc lib.<fn>`).
 
 Take the channel from `flake.lock`, never from memory. Flag when an answer
@@ -117,10 +130,12 @@ Common cases:
 | `scripts/check` | All checks: formatting, full eval of every host, zero warnings (`abort-on-warn`), modules over packages, `# no NixOS module` comments, untracked `.nix` files. Same as CI. |
 | `scripts/find-module <name>` | `programs`/`services`/`hardware`/`virtualisation` options and module files for a name, at the locked rev. |
 | `scripts/nixpkgs-path` | Store path of nixpkgs at the locked rev. |
+| `scripts/nixos-mcp '<json>'...` | Calls the mcp-nixos server (search.nixos.org index) without MCP support, e.g. in cloud project threads. |
+| `.mcp.json` | Project MCP server `nixos` (mcp-nixos from the locked nixpkgs). Loads locally and in single-repo cloud sessions, not in cloud project threads. |
 | `checks/default.nix` | The flake checks behind `nix flake check`. Exceptions to modules-over-packages go in `packageExceptions`, with a reason. |
 | `.claude/agents/nix-reviewer.md` | Pre-PR reviewer subagent. |
 | `.claude/skills/add-program/` | Procedure for adding a program. |
-| `.claude/settings.json` | Hooks (local sessions only): format `.nix` on edit, block `git push`/PR when `scripts/check` fails. |
+| `.claude/settings.json` | Approves the `nixos` MCP server in trusted folders. Hooks (local sessions only): format `.nix` on edit, block `git push`/PR when `scripts/check` fails. |
 
 ## Answers
 
