@@ -81,15 +81,5 @@ git push
 
 ## Day to day
 
-```sh
-cd ~/nixos-configurations
-sudo nixos-rebuild switch --flake .#<host>   # or `test` (no boot entry) / `boot` (next reboot)
-nix flake update                              # update nixpkgs, then rebuild
-nix fmt                                       # format all .nix files
-scripts/check                                 # all checks, same as CI
-```
-
-New files must be `git add`ed before the flake can see them.
-
-Roll back with `sudo nixos-rebuild switch --rollback`, or pick an older
-generation in the systemd-boot menu.
+Rebuilding, updating and rolling back are described in the
+[README](README.md#daily-use).
