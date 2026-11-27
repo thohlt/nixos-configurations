@@ -19,16 +19,12 @@ in
     services.avahi = {
       enable = true;
       nssmdns4 = true;
-      openFirewall = true;
     };
 
+    # Plasma adds Skanpage (successor of Skanlite) when SANE is enabled.
     hardware.sane = {
       enable = true;
       extraBackends = [ pkgs.sane-airscan ];
     };
-
-    environment.systemPackages = [
-      pkgs.kdePackages.skanlite # no NixOS module
-    ];
   };
 }
