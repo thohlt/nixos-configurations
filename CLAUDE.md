@@ -21,7 +21,7 @@ Following the rules is your job; a green check is not proof.
 Before adding ANY program to `environment.systemPackages` or
 `users.users.<name>.packages`, look for a `programs.<name>` or
 `services.<name>` module at the locked nixpkgs revision: run
-`scripts/find-module <name>` and confirm on search.nixos.org (options). If one
+`scripts/find-module <name>` and confirm with mcp-nixos (Sources, step 3). If one
 exists, enable it (`.enable = true;`) and configure it there. Only list a
 package when no module exists, with the comment `# no NixOS module` on its line.
 Re-check every package in every change before opening or updating a PR, and
@@ -68,12 +68,20 @@ or update a PR while either one fails.
    or touch there too: as MCP tools `mcp__nixos__nix` / `mcp__nixos__nix_versions`
    where `.mcp.json` loads (local sessions, single-repo cloud sessions), else
    with `scripts/nixos-mcp '<json>'` (cloud project threads load no `.mcp.json`).
-   It answers from the search.nixos.org index of a channel (pass the channel
-   from `flake.lock`), not the locked rev. If it disagrees with step 2, step 2
+   It answers from the search.nixos.org index of a channel (`unstable` for
+   `nixos-unstable` in `flake.lock`, else `stable` or a release like `25.11`),
+   not the locked rev. If it disagrees with step 2, step 2
    wins: report the difference (usually the lock is older or newer than the
    index) and check the release notes. Never use its `home-manager` source.
-   Errors about blocked hosts (noogle.dev, nix.dev, search.devbox.sh) mean
-   the cloud network policy denies them: say so and use the other sources.
+   Errors about blocked hosts mean the cloud network policy denies them: say
+   so and use the other sources.
+   Why third-party: Thilo wants it as an extra safety layer. No official tool
+   gives search.nixos.org, noogle and binary-to-package lookups from the shell
+   or over MCP (the search.nixos.org page is a JS front end). Trade-off: it is
+   third-party code that `.mcp.json` starts automatically, it sends queries to
+   outside hosts, it answers from an index rather than the lock, and it ships
+   a Home Manager source we don't use. To drop it, delete `.mcp.json`,
+   `scripts/nixos-mcp` and this step.
 4. **Live official docs:** search.nixos.org (packages, options), noogle.dev
    (`lib.*`, `builtins.*`), nixos.org/manual, nix.dev, wiki.nixos.org (NOT
    nixos.wiki), NixOS release notes, status.nixos.org, nixhub.io (third-party,
