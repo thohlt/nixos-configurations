@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+# Prints the store path of nixpkgs at the revision locked in flake.lock.
+# Read module sources there, not from memory: "$(scripts/nixpkgs-path)/nixos/modules"
+set -euo pipefail
+cd "$(git rev-parse --show-toplevel)"
+ARCHIVE=$(nix flake archive --json --dry-run) nix eval --raw --impure --expr \
+  '(builtins.fromJSON (builtins.getEnv "ARCHIVE")).inputs.nixpkgs.path'

@@ -6,7 +6,7 @@
   };
 
   outputs =
-    { nixpkgs, ... }@inputs:
+    { self, nixpkgs, ... }@inputs:
     let
       systems = [ "x86_64-linux" ];
       forAllSystems = nixpkgs.lib.genAttrs systems;
@@ -31,5 +31,15 @@
       ] mkHost;
 
       formatter = forAllSystems (system: nixpkgs.legacyPackages.${system}.nixfmt-tree);
+
+      # Formatting, zero warnings and the modules-over-packages rule.
+      checks = forAllSystems (
+        system:
+        import ./checks {
+          inherit self;
+          inherit (nixpkgs) lib;
+          pkgs = nixpkgs.legacyPackages.${system};
+        }
+      );
     };
 }

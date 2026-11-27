@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+# Usage: scripts/find-module <name>...
+# For each name, shows NixOS modules at the locked nixpkgs revision that could
+# replace listing the package: programs.<name> / services.<name> options, and
+# module files whose path mentions the name.
+set -euo pipefail
+cd "$(git rev-parse --show-toplevel)"
+[ $# -gt 0 ] || { echo "usage: $0 <name>..." >&2; exit 2; }
+
+nixpkgs=$(scripts/nixpkgs-path)
+host=$(nix eval --raw .#nixosConfigurations --apply 'c: builtins.head (builtins.attrNames c)')
+
+for name in "$@"; do
+  echo "== $name"
+  nix eval --json ".#nixosConfigurations.$host.options" --apply "o: builtins.filter (x: x != null) (map (ns:
+    if o.\${ns} ? \"$name\" then ns + \".$name\" else null) [ \"programs\" \"services\" \"hardware\" \"virtualisation\" ])" \
+    | tr -d '[]"' | tr ',' '\n' | sed '/^$/d; s/^/option: /'
+  find "$nixpkgs/nixos/modules" \( -iname "$name.nix" -o -iname "$name" \) | sed "s|^$nixpkgs/|file:   |"
+done

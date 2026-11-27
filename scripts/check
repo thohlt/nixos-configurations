@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+# Runs every repository check. Must pass before a commit is pushed or a PR opened.
+# - formatting (nixfmt-tree), both hosts fully evaluated, zero NixOS warnings,
+#   modules over packages, "# no NixOS module" comments  (checks/default.nix)
+# - abort-on-warn: any evaluation warning (lib.warn, deprecated aliases) fails
+# - untracked .nix files fail, because the flake cannot see them
+set -euo pipefail
+cd "$(git rev-parse --show-toplevel)"
+
+untracked=$(git ls-files --others --exclude-standard -- '*.nix')
+if [ -n "$untracked" ]; then
+  echo "Untracked .nix files (the flake ignores them, run git add):" >&2
+  echo "$untracked" >&2
+  exit 1
+fi
+
+exec nix flake check -L --keep-going --option abort-on-warn true "$@"
