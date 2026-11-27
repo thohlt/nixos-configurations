@@ -6,6 +6,10 @@
     ./nix.nix
     ./base.nix
     ./users.nix
+    ./unfree.nix
     ./plasma.nix
+    ./apps.nix
+    ./dev.nix
+    ./printing.nix
   ];
 }

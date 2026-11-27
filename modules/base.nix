@@ -1,4 +1,5 @@
 # Settings every machine shares: boot, firmware, networking, locale, audio.
+{ pkgs, ... }:
 {
   # UEFI + systemd-boot. LUKS devices come from hardware-configuration.nix.
   boot.loader = {
@@ -26,9 +27,12 @@
     LC_MONETARY = "de_DE.UTF-8";
   };
 
-  # US keyboard layout, also used on the console.
-  services.xserver.xkb.layout = "us";
-  console.useXkbConfig = true;
+  # US and German keyboard layouts (Plasma and the login screen).
+  # The console keeps its default US keymap.
+  services.xserver.xkb.layout = "us,de";
+
+  # OpenConnect VPN (AnyConnect-compatible) in NetworkManager.
+  networking.networkmanager.plugins = [ pkgs.networkmanager-openconnect ];
 
   # Audio via PipeWire, with the PulseAudio and ALSA layers most apps expect.
   security.rtkit.enable = true;
@@ -40,4 +44,16 @@
 
   # git is needed to work with this flake.
   programs.git.enable = true;
+
+  programs.vim.enable = true;
+  programs.htop.enable = true;
+
+  # Disk health monitoring (SMART).
+  services.smartd.enable = true;
+
+  environment.systemPackages = [
+    pkgs.wget # no NixOS module
+    pkgs.fastfetch # no NixOS module
+    pkgs.vifm # no NixOS module
+  ];
 }

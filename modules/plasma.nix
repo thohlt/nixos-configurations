@@ -1,5 +1,10 @@
 # KDE Plasma 6 with Plasma Login Manager.
-{ config, lib, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}:
 let
   cfg = config.my.desktop.plasma;
 in
@@ -10,6 +15,13 @@ in
     services.desktopManager.plasma6.enable = true;
     services.displayManager.plasma-login-manager.enable = true;
 
-    programs.firefox.enable = true;
+    programs.firefox = {
+      enable = true;
+      package = pkgs.firefox-devedition;
+    };
+
+    environment.systemPackages = [
+      pkgs.kdePackages.kcalc # no NixOS module
+    ];
   };
 }
