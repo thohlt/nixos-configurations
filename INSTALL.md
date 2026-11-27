@@ -86,7 +86,7 @@ cd ~/nixos-configurations
 sudo nixos-rebuild switch --flake .#<host>   # or `test` (no boot entry) / `boot` (next reboot)
 nix flake update                              # update nixpkgs, then rebuild
 nix fmt                                       # format all .nix files
-nix flake check
+scripts/check                                 # all checks, same as CI
 ```
 
 New files must be `git add`ed before the flake can see them.
